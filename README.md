@@ -416,4 +416,86 @@ In this section, we will be setting up a SIEM (Security Information and Event Ma
 
 #### 4.4.1 Amazon CloudWatch
 
+Amazon CloudWatch is not necessarily a SIEM in its entirety but it does have useful features when combined with other services to provide SIEM like capability.
+
+Luckily for us, we already setup our logs to send to CloudWatch so its as simple as going to Log Groups and selecting which logs we want to view.
+
+To gather more insights about our logs, we can use Log Insights to query for select information about our logs
+
+![aws28](https://github.com/user-attachments/assets/f11c08cf-8b99-4899-838d-7d50a78d01c9)
+
+![aws29](https://github.com/user-attachments/assets/852a8943-e034-4f6b-91de-0d28f580ff5a)
+
+The next thing we are going to do with Amazon CloudWatch is set up an alert. Alerts are great for detecting when a specific incident happens, allowing for faster response.
+
+We'll create an alert for Rejected SSH attempts from our logs. To do this we will set up a metric filter and an alarm.
+
+To create a metric filter, we can head to Log Groups then select our VPC Log. Once here we can select Actions to bring out the drop down menu and we will select *Create Metric Filter*
+
+![aws30](https://github.com/user-attachments/assets/df70f6f9-a8a4-425b-8481-3b41b00f9995)
+
+The first step for creating a metric filter will be Defining and Testing a pattern
+
+The filter pattern we will be using to detect failled SSH attempts is as follows:
+- [version, account_id, interface_id, srcaddr, dstaddr, srcport, dstport, protocol, packets, bytes, start, end, action, log_status]
+
+To test this data we will select custom log data and paste this sample entry:
+- 2 123456789012 eni-1235b8ca123456789 203.0.113.12 192.168.1.10 54321 22 6 5 500 1623101047 1623101107 REJECT OK
+
+You will be able to test the filter on this page and there should be a single test result shown, as seen in the screenshot below.
+
+After moving onto the next page, you will now be naming the filter and providing some details for it. Here is the configurations I used:
+- Filter Name: Failed SSH Filter
+- Metric Namespace: VPCFlowLogs/SOC
+- Metric Name: Failed SSH
+- Metric Value: 1
+- Default Value: 0
+- Unit: Count
+
+From here we can then move onto the last page where we can review our filter. Once everything is reviewed and looks good, we can create our metric filter.
+
+With our metric filter successfully created, let's create an alarm. This is AWS' version of alerts and we can use these to inform us of whenever an issues arises.
+
+We will now leave out of Log Groups and head into Alarms and create Alarm.
+
+Creating an alarm is quite simple, you will need to select a metric of yours that you would like to create an alarm around. In our case, we will use our Failed SSH Filter.
+
+Here is my configurations:
+
+Metric
+- Namespace: VPCFlowLogs/SOC
+- Metric Name: FailedSSH
+- Statistic: Average
+- Period: 1 Minute
+
+Conditions:
+- Threshold: Static
+- Define Alarm Condition: Greater Than or Equal To
+- Define Alarm Value: 1
+
+Notification:
+- Alarm State Trigger: In Alarm
+- Send an SNS Notification to the following topic: Create a new topic
+- Notification Name: SOC-Lab-CW-FailedSSH
+- Notification Email: Your email
+- Create topic
+*Note: There are other options available for you to use, I will be using this for the sake of the lab.*
+
+Name and Description:
+- Name: FailedSSH-ALARM
+- Description: This alarm will notify you whenever an SSH attempt fails
+
+Save Alarm
+
+Congratulations you now have an alarm setup on AWS! Let's go ahead and test it out!
+
+To do so I will attempt to ssh into the public IP from my laptop (not the same IP of my desktop). This should trigger the alarm.
+
+As seen in the screenshots below the alarm works as expected. When trying to SSH from a machine that is not approved, the alarm was trigged, creating a metric in our logs, as well as sending me an email about the incident.
+
+<img width="1420" alt="Screenshot 2025-01-07 at 4 06 22 PM" src="https://github.com/user-attachments/assets/89dc9f1f-d8d6-4b9c-84a0-eea690989e84" />
+
+<img width="760" alt="Screenshot 2025-01-07 at 4 10 19 PM" src="https://github.com/user-attachments/assets/b36f031e-84a2-4f53-866a-a793b8aa2dc7" />
+
+#### 4.4.2 ELK SIEM
 
