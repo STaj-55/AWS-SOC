@@ -123,17 +123,125 @@ Here we will add in 0.0.0.0/0 and select our Internet Gateway.
 
 The last thing we will do is select your designated routing table (Public or Private), head to Subnet Associations, select edit subnet associations, and then assign it to its corresponding subnet.
 
+#### 3.2 EC2 Instances
+
+*I apologize if I may have forgotten something, my power went out so I had to re-write this walkthrough from this point on*
+
+Now that our network is setup, let's configure our *Elastic Compute Cloud* instances to setup our servers for this lab. We will have 3 servers available to us, A public web server, a private app server, and a Bastion Host to log in from.
+
+To create an EC2 instance, we can do so by heading over to EC2 from the management console and selecting *Launch Instance*
 ![aws16](https://github.com/user-attachments/assets/0cd0d199-62fd-4fe1-8522-6ffd7b842ef0)
 
-![aws17](https://github.com/user-attachments/assets/4e32aafc-ede0-4928-8008-edee5b5a3f80)
+Here are the following configurations that I used for our EC2 instances:
+
+*Note for the simplicity of this lab, I only used a single Key Pair, but if you wanted to strengthen the security of your lab, use separate keys*
+
+**Public Web Server**
+- Name: SOC-WS
+- Amazon Linux
+- AMI: Amazon Linux 2023 AMI
+- Instance type: t2.micro
+- Key Pair Name: SOC-Lab
+- Network: SOC-VPC
+- Subnet: SOC-Pub-Sub-1
+- Auto Assign Public IP: Enabled
+Create Security Group
+- Security Group Name: SOC-Web-SG
+- Description: EC2 Instance for Public Web Server - SOC-Lab
+Rules:
+- SSH | TCP | Port 22| Source: SOC-Bastion-SG (Most likely will need to add this after)
+- HTTP | TCP | Port 80 | Source: Any
+- SSH | TCP | Port 22 | Source: My IP
+
+**Private Application Server**
+- Name: SOC-AS
+- Amazon Linux
+- AMI: Amazon Linux 2023 AMI
+- Instance type: t2.micro
+- Key Pair Name: SOC-Lab
+- Network: SOC-VPC
+- Subnet: SOC-Priv-Sub-1
+- Auto Assign Public IP: Disabled
+Create Security Group
+- Security Group Name: SOC-App-SG
+- Description: EC2 Instance for Private App Server - SOC-Lab
+Rules:
+- All Traffic | All | All | Source: SOC-Web-SG
+- SSH | TCP | 22 | Source: SOC-Web-SG
+- SSH | TCP | 22 | Source: SOC-Bastion-SG
+
+**Bastion Host**
+- Name: SOC-BH
+- Amazon Linux
+- AMI: Amazon Linux 2023 AMI
+- Instance type: t2.micro
+- Key Pair Name: SOC-Lab
+- Network: SOC-VPC
+- Subnet: SOC-Pub-Sub-1
+- Auto Assign Public IP: Enabled
+Create Security Group
+- Security Group Name: SOC-Bastion-SG
+- Description: EC2 Instance for Bastion Host - SOC-Lab
+Rules:
+- SSH | TCP | Port 22 | Source: My IP
+
+#### 3.3 Verifying our Instances
+
+Now that we have our EC2 Instances up and running, let's SSH into each of them to ensure we can they are operational.
+
+***Before you can use your Key, you must provide the proper permissions, here is the command to use:***
+***sudo chmod 400 SOC-Key.pem***
+
+There are different ways to go about this but I will be SSH-ing into them via my Kali Linux VM (Hosted by VMWare Workstation 16 Player)
+
+In order to SSH into an EC2 instance we can use the following command:
+- ***ssh -i SOC-Key.pem ec2-user@WebServerPublicIP***
 
 ![aws18](https://github.com/user-attachments/assets/8708d28f-d2a3-4fb3-b5bd-5934a2f87728)
 
+As we can see we have successfully logged onto our Web Server from our Kali Linux VM. Now to go from our Web Server to Private App server, we would need to transfer our key.
+
+Here's the command to transfer your SSH Key:
+- ***scp -i SOC-Key.pem SOC-Key.pem ec2-user@WebServerPublicIP:~/***
+
+However, since this is our public Web Server, we should be securely storing this key. We can do this by running the following commands:
+- ***mkdir -p ~/.ssh***
+- ***mv SOC-Key.pem ~/.ssh***
+- ***chmod 700 ~/.ssh***
+
+Now that we have secured the location of our key, let's verify it!
 ![aws19](https://github.com/user-attachments/assets/0509ac78-bd86-43c6-8433-1c9d13fb5163)
 
 ![aws20](https://github.com/user-attachments/assets/ccda0a6f-8089-4610-8f07-b9898f3c1943)
 
+As we can see from our screenshots above, the directory itself cannot be access by anyone except the owner, and the file itself is secure.
+
+Now that we have everything SSH wise setup here, let's configure our web server. This can be done with a few commands:
+- ***sudo yum install httpd -y***
+- ***sudo systemctl start httpd***
+- ****echo "SOC Lab Web Server" | sudo tee /var/www/html/index.html***
+
+These commands above install Apache onto our webserver, starts it, and adds the content "SOC Lab Web Server" to the index file which should be displayed on our webpage.
+
+If we use a web browser and head to the public IP of our server, we should be able to see it.
+
 ![aws21](https://github.com/user-attachments/assets/717f01b5-9039-4bba-924d-c3bcc7a4d108)
+
+As seen from the screenshot above, our webpage is fully functional and our changes have been applied.
+
+### 4. Enable Monitoring and Logging
+
+In this section we will set up and configure monitoring and logging for our lab. This is essential for a SOC becasuse we need to be able to see what happens in our network.
+
+We will perform the following:
+1. **Monitor VPC Network Traffic**, by using VPC Flow Logs to capture network traffic
+2. **Track API Calls**, by using CloudTrail to log all API calls made from our account
+3. **Threat Detection**, by using Amazon GuardDuty to detect suspicious activity or security threats
+4. **Centralized Log Management**, by using Amazon CloudWatch for real-time analysis.
+ - I will also be setting up ELK (ElasticSearch, LogStash, and Kibana) to show what a 3rd-party SIEM would look like on AWS 
+
+#### 4.1 VPC Flow Logs
+
 
 ![aws22](https://github.com/user-attachments/assets/f1bd42a5-8161-4228-99fa-f695563b8d94)
 
