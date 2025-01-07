@@ -327,7 +327,54 @@ First from the managment console, lets head to CloudTrail, and select the trail 
 Once here we should see general details, and in this tab we will press edit and enable:
 - **Log File Validation**
 
-After enabling Log File Validation we will backout to where we were and scroll down until we see Data Events.
+After enabling Log File Validation, the next thing we need to do is set up CloudWatch Logs, this is right underneath General Details and we can press edit to adjust our settings.
+
+From here can do the following:
+- Enable CloudWatch Logs
+- Log Group: New
+- Default Log Group Name
+- IAM Role: Create New Role
+- Role Name: CT4CW-Role
+- Save Changes
+
+After setting this up, we can quickly head back to IAM > Roles > CT4CW-Role and add a new inline policy. Just like before we will switch to JSON and paste the following policy.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowCreateLogGroup",
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "arn:aws:logs:us-east-1:307946648303:log-group:aws-cloudtrail-logs-307946648303-*"
+        },
+        {
+            "Sid": "AllowCreateLogStream",
+            "Effect": "Allow",
+            "Action": "logs:CreateLogStream",
+            "Resource": "arn:aws:logs:us-east-1:307946648303:log-group:aws-cloudtrail-logs-307946648303-*:log-stream:*"
+        },
+        {
+            "Sid": "AllowPutLogEvents",
+            "Effect": "Allow",
+            "Action": "logs:PutLogEvents",
+            "Resource": "arn:aws:logs:us-east-1:307946648303:log-group:aws-cloudtrail-logs-307946648303-*:log-stream:*"
+        },
+        {
+            "Sid": "AllowDescribeLogGroups",
+            "Effect": "Allow",
+            "Action": "logs:DescribeLogGroups",
+            "Resource": "*"
+        }
+    ]
+}
+
+```
+
+After doing this all we need to do is save it, and add a name for this policy. I named mine: **SOC-CWLogs**.
+
+After setting up CloudWatch Logs we will backout to where we were and scroll down until we see Data Events.
 
 As seen in the screenshot below, we enabed the following configurations:
 - Data Events: Enabled
