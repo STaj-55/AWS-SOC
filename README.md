@@ -123,5 +123,26 @@ Here we will add in 0.0.0.0/0 and select our Internet Gateway.
 
 The last thing we will do is select your designated routing table (Public or Private), head to Subnet Associations, select edit subnet associations, and then assign it to its corresponding subnet.
 
+![aws16](https://github.com/user-attachments/assets/0cd0d199-62fd-4fe1-8522-6ffd7b842ef0)
+
+![aws17](https://github.com/user-attachments/assets/4e32aafc-ede0-4928-8008-edee5b5a3f80)
+
+![aws18](https://github.com/user-attachments/assets/8708d28f-d2a3-4fb3-b5bd-5934a2f87728)
+
+![aws19](https://github.com/user-attachments/assets/0509ac78-bd86-43c6-8433-1c9d13fb5163)
+
+![aws20](https://github.com/user-attachments/assets/ccda0a6f-8089-4610-8f07-b9898f3c1943)
+
+![aws21](https://github.com/user-attachments/assets/717f01b5-9039-4bba-924d-c3bcc7a4d108)
+
+![aws22](https://github.com/user-attachments/assets/f1bd42a5-8161-4228-99fa-f695563b8d94)
+
+![aws23](https://github.com/user-attachments/assets/1c1dd346-4e73-42db-99a4-c3c29b61aa77)
+
+![aws24](https://github.com/user-attachments/assets/af8dfea3-bada-4d1d-9eac-f31ba941b7b1)
+
+![aws25](https://github.com/user-attachments/assets/92fd517d-a86a-431b-871e-3794e3d7149f)
+
+![aws26](https://github.com/user-attachments/assets/252aaf36-f52a-49ca-9acb-7d1c3a929d51)
 
 
