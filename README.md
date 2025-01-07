@@ -210,6 +210,7 @@ However, since this is our public Web Server, we should be securely storing this
 - ***chmod 700 ~/.ssh***
 
 Now that we have secured the location of our key, let's verify it!
+
 ![aws19](https://github.com/user-attachments/assets/0509ac78-bd86-43c6-8433-1c9d13fb5163)
 
 ![aws20](https://github.com/user-attachments/assets/ccda0a6f-8089-4610-8f07-b9898f3c1943)
@@ -242,15 +243,130 @@ We will perform the following:
 
 #### 4.1 VPC Flow Logs
 
+As mentioned before, VPC Flow logs will be used to capture network traffic, which we can then use for network analysis.
+
+In order to set it up, we can head to the VPC Console, once here, select your VPC. Afterwards, head to Actions and left click it to bring the drop-down menu and select Create Flow Log.
 
 ![aws22](https://github.com/user-attachments/assets/f1bd42a5-8161-4228-99fa-f695563b8d94)
 
+Let's apply the following configurations:
+- Name: SOC-VPC-Flowlog
+- Filter: All
+- Maximum Aggregation Interval: 1 Minute
+- Destination: Send to CloudWatch Logs
+- Destination Log Group: /aws/vpc/flowlogs/SOC-Lab
+- Service Access: Create and use a new service role
+- Service Role Name: SOCFLowLogsRole
+- Log Record Format: AWS Default Format
+Tags
+- Key: Name | Value: SOC-Flow-Logs
+- Key: Project | Value: SOC-Lab
+- Key: Environment | Value: Development
+
+Now since we created a new service role, let's add in our IAM Policy for this role.
+
+We can do this by heading to IAM > Roles > SOCFLowLogsRole > Add Permissions > Create Inline Policy
+
+Once here switch from Visual to JSON and paste the following policy:
+
+~~~json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": "arn:aws:logs:us-east-1:307946648303:log-group:*:log-stream:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:DescribeLogStreams",
+				"logs:CreateLogGroup"
+			],
+			"Resource": "arn:aws:logs:us-east-1:307946648303:log-group:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "logs:DescribeLogGroups",
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:PutRetentionPolicy",
+				"logs:DeleteLogGroup"
+			],
+			"Resource": "arn:aws:logs:us-east-1:307946648303:log-group:*"
+		}
+	]
+}
+~~~
+
+Once this is completed we can press Next and Save Changes.
+
+We can now verify that our logs are being captured in CloudWatch. From the Management Console we can head to CloudWatch, then to Log Groups and select our VPC FLow Log.
+
 ![aws23](https://github.com/user-attachments/assets/1c1dd346-4e73-42db-99a4-c3c29b61aa77)
+
+As seen in the screenshot above, logs are properly being captured as shown in the Log Streams tab. 
+
+#### 4.2  CloudTrail
+
+CloudTrail will be used in this lab to log all API activity which is ideal for auditing and security proposes.
+
+Luckily for us, we already set up a CloudTrail in the beginning of our walkthrough so we won't have to spend much time here.
+
+We will be strengthening our CloudTrail by enabling a few settings.
+
+First from the managment console, lets head to CloudTrail, and select the trail we previously made.
+
+Once here we should see general details, and in this tab we will press edit and enable:
+- **Log File Validation**
+
+After enabling Log File Validation we will backout to where we were and scroll down until we see Data Events.
+
+As seen in the screenshot below, we enabed the following configurations:
+- Data Events: Enabled
+- Resource Type: S3
+- Log Selector Template: Log All Events
+- Sector Name: SOC-Lab-S3-DataEvents
 
 ![aws24](https://github.com/user-attachments/assets/af8dfea3-bada-4d1d-9eac-f31ba941b7b1)
 
+We are now done settingup CloudTrail and can move onto Threat Detection.
+
+#### 4.3 Amazon GuardDuty
+
+GuardDuty is AWS's threat detection service. It's enabled for our lab to detect potential threats within the SOC-Lab environment. Findings are actively monitored for suspicious activities, such as reconnaissance attempts or unauthorized access.
+
+Settings up GuardDuty is extremely easy as it is only a few clicks of a button.
+
+***Note: GuardDuty is a paid service from AWS however we can utilize a free 30-day trial to test it out***
+
+To set up GuardDuty, we can type in GuardDuty from the Management Console and enter the service.
+
 ![aws25](https://github.com/user-attachments/assets/92fd517d-a86a-431b-871e-3794e3d7149f)
 
+From here we can press Get Started to start our setup.
+
 ![aws26](https://github.com/user-attachments/assets/252aaf36-f52a-49ca-9acb-7d1c3a929d51)
+
+GuardDuty automatically anlayzes data from our VPC FLow Logs, CloudTrail and even DNS logs, so we don't need to worry about setting anything up. All we need to press enable and GuardDuty will be activated.
+
+GuardDuty has a similar layout to most other security solutions and services, displaying vital information such as any threat findings, attack sequences, and as well as a Dashboard that you can set up to see the metrics you want to see.
+
+![aws27](https://github.com/user-attachments/assets/0db9bf02-c7ed-4944-aab3-766c5e18b1ec)
+
+#### 4.4 Centralized Log Management
+
+In this section, we will be setting up a SIEM (Security Information and Event Management) tool to consolidate all of our logs for easier analysis. There are two options that we will be exploring in this lab:
+1. Amazon CloudWatch Logs
+2. ELK (Elasticsearch, Logstash, Kibana)
+
+#### 4.4.1 Amazon CloudWatch
 
 
