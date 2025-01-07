@@ -28,7 +28,7 @@ We are going to setup a CloudTraill Trail to log all API activity across the acc
 ![aws1](https://github.com/user-attachments/assets/8ceb2b3d-fe6a-4f56-a417-f2612403d8b3)
 When first accessing CloudTrail, we can select "Create a trail"
 
-![aws2](https://github.com/user-attachments/assets/d6a05132-8461-4311-8cbf-12e51a429ed0)
+![aws2](https://github.com/user-attachments/assets/2137c394-8772-4d39-8539-e6f4f6947527)
 We will be sent to a new page where we can name our trail. I decided to name it as soc-ctlogs. After naming it, we can press create to finalize our trail.
 
 ![aws3](https://github.com/user-attachments/assets/4604f153-aa0d-48a5-966d-26517f92dcb0)
@@ -508,6 +508,20 @@ ElasticSearch, Logstash, and Kibana is another industry go-to for a SIEM solutio
 Let's manually deploy ELK on an EC2 instance.
 
 Here's my configurations:
+- Name: ELK
 - Amazon Linux 2 AMI
-- t3.medium
-- 
+- t3.medium (Although this isn't free tier eligble we can still use this and close the instance when not in use)
+- Key Pair: SOC-Key
+- Our VPC
+- Subnet: SOC-Priv-Sub-1
+- Auto-assign Public IP: Disable
+- Firewall security group: Create new group
+- Security Group Name: SOC-Elastic-SG
+- Description: Elastic SIEM Security Group
+Inbound Security Group Rules
+- Type: SSH : Protocol: TCP | Port Range: 22 | Source Type: Custom | Source: App / Web / Bastion Security Group | Description: SSH
+- Type: Custom TCP : Protocol: TCP | Port Range: 5044 | Source Type: Custom | Source: App / Web / Bastion Security Group | Description: Logstash
+- Type: Custom TCP : Protocol: TCP | Port Range: 9200 | Source Type: Custom | Source: App / Web / Bastion Security Group | Description: Elasticsearch
+- Type: Custom TCP : Protocol: TCP | Port Range: 5601 | Source Type: Custom | Source: App / Web / Bastion Security Group | Description: Kibana
+Configure Storage
+- 1x 20 GiB gp3
