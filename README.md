@@ -497,5 +497,7 @@ As seen in the screenshots below the alarm works as expected. When trying to SSH
 
 <img width="760" alt="Screenshot 2025-01-07 at 4 10 19 PM" src="https://github.com/user-attachments/assets/b36f031e-84a2-4f53-866a-a793b8aa2dc7" />
 
+
+
 #### 4.4.2 ELK SIEM
 
