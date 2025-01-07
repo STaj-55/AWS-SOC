@@ -497,7 +497,17 @@ As seen in the screenshots below the alarm works as expected. When trying to SSH
 
 <img width="760" alt="Screenshot 2025-01-07 at 4 10 19 PM" src="https://github.com/user-attachments/assets/b36f031e-84a2-4f53-866a-a793b8aa2dc7" />
 
+Amazon GuardDuty is now setup and have successfully performed threat monitoring for this portion of our lab. 
 
+Before we move onto Incident Response and Threat Detection Simulations, let's set up another well known SIEM to show these employers we know what we're talking about. Haha jk 😅... not really 😐 stop playing with my applications.
 
 #### 4.4.2 ELK SIEM
 
+ElasticSearch, Logstash, and Kibana is another industry go-to for a SIEM solution and it has a lot of uniqueness to it that I am fond of. Let's set this thing up in AWS from cloud up!
+
+Let's manually deploy ELK on an EC2 instance.
+
+Here's my configurations:
+- Amazon Linux 2 AMI
+- t3.medium
+- 
