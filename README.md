@@ -525,3 +525,35 @@ Inbound Security Group Rules
 - Type: Custom TCP : Protocol: TCP | Port Range: 5601 | Source Type: Custom | Source: App / Web / Bastion Security Group | Description: Kibana
 Configure Storage
 - 1x 20 GiB gp3
+
+After setting our config, we  are ready to launch our instance. With our Elk instance up, we can SSH into it from one of our other instances.
+
+Once we have logged in, we are first going to update our instance, as well as install all of the necessary libraries for ELK.
+
+*Looking back at our config, although this is great for security, we cannot update it due to no public IP being present, due to this an Elastic IP has to be assigned temporarily.*
+
+Here is how to assign one:
+- Head to VPC > Elastic IP > Allocate an Elastic IP address
+- You will be given some options, I chose the default settings and selected Allocate
+- An IP, will be made, now select your new IP, and press Associate Elastic IP Address
+- Choose Instance as Resource Type, select ELK as your instance, and select its IP as Private IP.
+- Once done press Associate.
+
+Your instance should now have an Elastic IP, we will be using this so we can update our ELK Instance.
+
+Here are the commands we will be running:
+- sudo yum update -y
+- sudo amazon-linux-extras enable corretto11
+- sudo yum install -y java-11-amazon-corretto
+- sudo rpm --import https://artificats.elastic.co/GPG-KEY-elasticsearch
+- echo "[elasticserach-7.x] name=Elasticsearch repository for 7.x packages baseurl=https://artifacts.elastic.co/GPG-KEY-elasticsearch enabled=1 autorefresh=1 type=rpm-md" | sudo tee /etc/yum.repos.d/elasticsearch.repo
+- sudo yum install -y elasticsearch logstash kibana
+
+After installing everything necessary for ELK, we are now going to start our services.
+- sudo systemctl start elasticsearch
+- sudo systemctl start logstash
+- sudo systemctl start kibana
+
+Let's enable these services and check the status of them to ensure they are operational
+
+Now that we have it up, all we need to do now is setup the configuration
