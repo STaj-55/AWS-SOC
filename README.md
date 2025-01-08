@@ -580,8 +580,66 @@ To have our changes applied, lets restart Elastic:
 Now let's test elasticsearch to ensure it works, we can do so with:
 - curl -X GET "http://localhost:9200"
 
-
+![aws30](https://github.com/user-attachments/assets/0cf41082-dc8a-4755-9216-911c689f311f)
 
 If done correctly the response should look like the screenshot above.
 
-Now lets configure LogStash.
+One down, two to go! Now lets configure LogStash!
+
+Let's open to logstash's config file:
+- sudo nano /etc/logstash/conf.d/flowlogs.conf
+
+With this file open, lets add the following:
+~~~plaintext
+input {
+  file {
+    path => "/var/log/vpc-flow-logs.log"
+    start_position => "beginning"
+  }
+}
+
+filter {
+  json {
+    source => "message"
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"]
+    index => "vpc-logs-%{+YYYY.MM.dd}"
+  }
+  stdout { codec => rubydebug }
+}
+~~~
+
+With the configuration added, restart logstash to apply the configuration.
+- sudo nano /etc/logstash/conf.d/flowlogs.conf
+
+All that is left is Kibana. Almost there!
+
+Let's edit the Kibana config file:
+- sudo nano /etc/kibana/kibana.yml
+Once here let's edit the two lines:
+- server.host "0.0.0.0"
+- elasticsearch.hosts: ["http://localhost:9200"]
+- server.publicBaseUrl: "http://PublicIP:5601"
+
+Let's apply these configs with restarting kibana
+- sudo systemctl restart kibana
+
+Now that everything is setup, we should be able to access Kibana from our browsers
+
+![aws31](https://github.com/user-attachments/assets/7a6a73e2-d219-4058-8fc0-e3732ef587d9)
+
+Since we have Kibana available to us, let's use their built in integrations to add in our VPC Flow Logs, CloudTrail, CloudWatch, and even our logs from our EC2 Instances.
+
+Let's start with VPC FLow Logs
+
+*Before we can start this integration, we need to make some adjustments to our elasticsearch.yml file*
+
+We need to set the following to true:
+- xpack.security.enabled: true
+- xpack.security.authc.api_key.enabled: true
+
+
