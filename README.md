@@ -566,4 +566,22 @@ discovery.seed_hosts: []
 cluster.initial_master_nodes: ["elk-node"]
 ~~~
 
+Now were going to adjust our JVM Heap Size:
+- sudo nano /etc/elasticsearch/jvm.options
+- Add in the following two lines:
+  - -Xms2g
+  - -Xms2g
 
+To have our changes applied, lets restart Elastic:
+- sudo systemctl restart elasticsearch
+
+*Note: if anything ends up not working, run the command: **sudo /usr/share/elasticsearch/bin/elasticsearch -d** *
+
+Now let's test elasticsearch to ensure it works, we can do so with:
+- curl -X GET "http://localhost:9200"
+
+
+
+If done correctly the response should look like the screenshot above.
+
+Now lets configure LogStash.
